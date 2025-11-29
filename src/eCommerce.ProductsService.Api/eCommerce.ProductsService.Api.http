@@ -1,0 +1,7 @@
+@eCommerce.ProductsService.Api_HostAddress = http://localhost:5146
+
+### Listar todos los productos
+GET {{eCommerce.ProductsService.Api_HostAddress}}/api/Product?numFilter=2&textFilter=Cat&numPage=1
+Accept: application/json
+
+###

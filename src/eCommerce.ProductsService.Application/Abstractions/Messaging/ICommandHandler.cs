@@ -1,0 +1,8 @@
+﻿using eCommerce.ProductsService.Application.Commons.Bases;
+
+namespace eCommerce.ProductsService.Application.Abstractions.Messaging;
+
+public interface ICommandHandler<in TCommand, TResponse> where TCommand : ICommand<TResponse>
+{
+    Task<BaseResponse<TResponse>> Handle(TCommand command, CancellationToken cancellationToken);
+}
