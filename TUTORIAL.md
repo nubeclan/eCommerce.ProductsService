@@ -106,13 +106,13 @@ using Mapster;
 
 namespace eCommerce.ProductsService.Application.UseCases.Products.Queries.GetProductById;
 
-internal sealed class GetProductByIdHandler(IUnitOfWork unitOfWork) 
+internal sealed class GetProductByIdHandler(IUnitOfWork unitOfWork)
     : IQueryHandler<GetProductByIdQuery, GetProductByIdResponseDto>
 {
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
     public async Task<BaseResponse<GetProductByIdResponseDto>> Handle(
-        GetProductByIdQuery query, 
+        GetProductByIdQuery query,
         CancellationToken cancellationToken)
     {
         var response = new BaseResponse<GetProductByIdResponseDto>();
@@ -144,7 +144,7 @@ internal sealed class GetProductByIdHandler(IUnitOfWork unitOfWork)
 }
 ```
 
-> **Importante:** 
+> **Importante:**
 > - El Handler debe implementar `IQueryHandler<TQuery, TResponse>`
 > - Debe ser `internal sealed` por convención
 > - Utiliza **Primary Constructor** de C# 12
@@ -163,8 +163,8 @@ public async Task<IActionResult> GetProductById(
     CancellationToken cancellationToken)
 {
     var query = new GetProductByIdQuery { ProductId = id };
-    
-    var response = await _dispatcher.Dispatch<GetProductByIdQuery, 
+
+    var response = await _dispatcher.Dispatch<GetProductByIdQuery,
         GetProductByIdResponseDto>(query, cancellationToken);
 
     return response.IsSuccess ? Ok(response) : NotFound(response);
@@ -184,25 +184,7 @@ GET https://localhost:5001/api/Product/{guid-del-producto}
 
 Los **Commands** se utilizan para **operaciones de escritura** (POST, PUT, DELETE). Sigamos el ejemplo de crear un producto.
 
-### **Paso 1: Crear el DTO de Request**
-
-Ubicación: `src/eCommerce.ProductsService.Application/Dtos/Products/`
-
-Crea el archivo `CreateProductRequestDto.cs`:
-
-```csharp
-namespace eCommerce.ProductsService.Application.Dtos.Products;
-
-public class CreateProductRequestDto
-{
-    public string Name { get; set; } = null!;
-    public string Category { get; set; } = null!;
-    public decimal UnitPrice { get; set; }
-    public int StockQuantity { get; set; }
-}
-```
-
-### **Paso 2: Crear el Command**
+### **Paso 1: Crear el Command**
 
 Ubicación: `src/eCommerce.ProductsService.Application/UseCases/Products/Commands/CreateProduct/`
 
@@ -224,7 +206,7 @@ public sealed class CreateProductCommand : ICommand<Guid>
 
 > **Importante:** El Command debe implementar `ICommand<TResponse>` donde `TResponse` es el tipo de retorno (en este caso `Guid` del producto creado).
 
-### **Paso 3: Crear el Validador (Opcional pero Recomendado)**
+### **Paso 2: Crear el Validador (Opcional pero Recomendado)**
 
 En la misma carpeta, crea `CreateProductValidator.cs`:
 
@@ -242,7 +224,8 @@ public class CreateProductValidator : AbstractValidator<CreateProductCommand>
             .MaximumLength(200).WithMessage("El nombre no puede exceder 200 caracteres.");
 
         RuleFor(x => x.Category)
-            .NotEmpty().WithMessage("La categoría es requerida.");
+            .NotEmpty().WithMessage("La categoría es requerida.")
+            .MaximumLength(100).WithMessage("La categoría no puede exceder 100 caracteres.");
 
         RuleFor(x => x.UnitPrice)
             .GreaterThan(0).WithMessage("El precio debe ser mayor a 0.");
@@ -253,31 +236,38 @@ public class CreateProductValidator : AbstractValidator<CreateProductCommand>
 }
 ```
 
-### **Paso 4: Crear el Handler del Command**
+### **Paso 3: Crear el Handler del Command**
 
 En la misma carpeta, crea `CreateProductHandler.cs`:
 
 ```csharp
 using eCommerce.ProductsService.Application.Abstractions.Messaging;
+using eCommerce.ProductsService.Application.Behaviors;
 using eCommerce.ProductsService.Application.Commons.Bases;
 using eCommerce.ProductsService.Application.Interfaces.Services;
 using eCommerce.ProductsService.Domain.Entities;
 
 namespace eCommerce.ProductsService.Application.UseCases.Products.Commands.CreateProduct;
 
-internal sealed class CreateProductHandler(IUnitOfWork unitOfWork) 
+internal sealed class CreateProductHandler(
+    IUnitOfWork unitOfWork,
+    IValidationService validationService)
     : ICommandHandler<CreateProductCommand, Guid>
 {
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
+    private readonly IValidationService _validationService = validationService;
 
     public async Task<BaseResponse<Guid>> Handle(
-        CreateProductCommand command, 
+        CreateProductCommand command,
         CancellationToken cancellationToken)
     {
         var response = new BaseResponse<Guid>();
 
         try
         {
+            // Validar el comando
+            await _validationService.ValidateAsync(command, cancellationToken);
+
             var product = new Product
             {
                 ProductID = Guid.NewGuid(),
@@ -294,6 +284,12 @@ internal sealed class CreateProductHandler(IUnitOfWork unitOfWork)
             response.Data = product.ProductID;
             response.Message = "Producto creado exitosamente.";
         }
+        catch (Commons.Exceptions.ValidationException ex)
+        {
+            response.IsSuccess = false;
+            response.Message = "Errores de validación.";
+            response.Errors = ex.Errors;
+        }
         catch (Exception ex)
         {
             response.IsSuccess = false;
@@ -305,11 +301,13 @@ internal sealed class CreateProductHandler(IUnitOfWork unitOfWork)
 }
 ```
 
-> **Importante:** 
+> **Importante:**
 > - El Handler debe implementar `ICommandHandler<TCommand, TResponse>`
+> - Incluye validación automática con `IValidationService`
 > - Debe llamar a `SaveChangesAsync()` del UnitOfWork para persistir los cambios
+> - Maneja excepciones de validación y generales
 
-### **Paso 5: Añadir el Endpoint en el Controlador**
+### **Paso 4: Añadir el Endpoint en el Controlador**
 
 En `ProductController.cs`, añade:
 
@@ -322,13 +320,13 @@ public async Task<IActionResult> CreateProduct(
     var response = await _dispatcher.Dispatch<CreateProductCommand, Guid>(
         command, cancellationToken);
 
-    return response.IsSuccess 
+    return response.IsSuccess
         ? CreatedAtAction(nameof(GetProductById), new { id = response.Data }, response)
         : BadRequest(response);
 }
 ```
 
-### **Paso 6: Probar el Endpoint**
+### **Paso 5: Probar el Endpoint**
 
 ```http
 POST https://localhost:5001/api/Product

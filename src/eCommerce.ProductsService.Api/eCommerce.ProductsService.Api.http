@@ -1,7 +1,162 @@
-@eCommerce.ProductsService.Api_HostAddress = http://localhost:5146
+@baseUrl = https://localhost:5001
+@apiUrl = {{baseUrl}}/api/Product
 
-### Listar todos los productos
-GET {{eCommerce.ProductsService.Api_HostAddress}}/api/Product?numFilter=2&textFilter=Cat&numPage=1
+### Variables
+@productId = 00000000-0000-0000-0000-000000000000
+
+###############################################
+### 1. GET - Obtener todos los productos
+###############################################
+
+GET {{apiUrl}}
 Accept: application/json
 
 ###
+
+GET {{apiUrl}}?NumPage=1&NumRecordsPage=10&Sort=Name&Order=ASC
+Accept: application/json
+
+###
+
+GET {{apiUrl}}?NumFilter=1&TextFilter=Laptop
+Accept: application/json
+
+###############################################
+### 2. GET - Obtener producto por ID
+###############################################
+
+GET {{apiUrl}}/{{productId}}
+Accept: application/json
+
+###############################################
+### 3. POST - Crear producto
+###############################################
+
+POST {{apiUrl}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "name": "Laptop Gaming MSI",
+  "category": "Electronics",
+  "unitPrice": 1299.99,
+  "stockQuantity": 15
+}
+
+###
+
+POST {{apiUrl}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "name": "Mouse Logitech G502",
+  "category": "Accessories",
+  "unitPrice": 79.99,
+  "stockQuantity": 50
+}
+
+###
+
+POST {{apiUrl}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "name": "Teclado Mecánico Corsair K95",
+  "category": "Accessories",
+  "unitPrice": 199.99,
+  "stockQuantity": 30
+}
+
+###############################################
+### 4. PUT - Actualizar producto
+###############################################
+
+PUT {{apiUrl}}/{{productId}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "name": "Laptop Gaming MSI - ACTUALIZADO",
+  "category": "Electronics",
+  "unitPrice": 1399.99,
+  "stockQuantity": 20
+}
+
+###############################################
+### 5. DELETE - Eliminar producto
+###############################################
+
+DELETE {{apiUrl}}/{{productId}}
+Accept: application/json
+
+###############################################
+### PRUEBAS DE VALIDACIÓN (Errores esperados)
+###############################################
+
+### POST con nombre vacío (Error de validación)
+POST {{apiUrl}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "name": "",
+  "category": "Electronics",
+  "unitPrice": 1299.99,
+  "stockQuantity": 15
+}
+
+###
+
+### POST con precio negativo (Error de validación)
+POST {{apiUrl}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "name": "Producto Test",
+  "category": "Test",
+  "unitPrice": -100,
+  "stockQuantity": 10
+}
+
+###
+
+### POST con stock negativo (Error de validación)
+POST {{apiUrl}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "name": "Producto Test",
+  "category": "Test",
+  "unitPrice": 100,
+  "stockQuantity": -5
+}
+
+###
+
+### GET producto inexistente (404)
+GET {{apiUrl}}/11111111-1111-1111-1111-111111111111
+Accept: application/json
+
+###
+
+### PUT producto inexistente (404)
+PUT {{apiUrl}}/11111111-1111-1111-1111-111111111111
+Content-Type: application/json
+Accept: application/json
+
+{
+  "name": "Producto No Existe",
+  "category": "Test",
+  "unitPrice": 100,
+  "stockQuantity": 10
+}
+
+###
+
+### DELETE producto inexistente (404)
+DELETE {{apiUrl}}/11111111-1111-1111-1111-111111111111
+Accept: application/json

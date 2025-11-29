@@ -19,8 +19,4 @@
     <ProjectReference Include="..\eCommerce.ProductsService.Domain\eCommerce.ProductsService.Domain.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="UseCases\Products\Commands\" />
-  </ItemGroup>
-
 </Project>

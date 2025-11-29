@@ -130,17 +130,100 @@ GET /api/Product?NumPage=1&NumRecordsPage=10&Sort=Name&Order=ASC&NumFilter=1&Tex
 }
 ```
 
-**Respuesta con error (400 Bad Request):**
+### **GET** `/api/Product/{id}`
+Obtiene un producto específico por su ID.
+
+**Parámetros de ruta:**
+- `id`: GUID del producto
+
+**Respuesta exitosa (200 OK):**
+```json
+{
+  "isSuccess": true,
+  "data": {
+    "productID": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "name": "Laptop Gaming",
+    "category": "Electronics",
+    "unitPrice": 1299.99,
+    "stockQuantity": 15
+  },
+  "message": "Consulta exitosa.",
+  "totalRecords": 0,
+  "errors": null
+}
+```
+
+### **POST** `/api/Product`
+Crea un nuevo producto.
+
+**Cuerpo de la solicitud:**
+```json
+{
+  "name": "Laptop Gaming MSI",
+  "category": "Electronics",
+  "unitPrice": 1299.99,
+  "stockQuantity": 15
+}
+```
+
+**Respuesta exitosa (201 Created):**
+```json
+{
+  "isSuccess": true,
+  "data": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "message": "Producto creado exitosamente.",
+  "totalRecords": 0,
+  "errors": null
+}
+```
+
+### **PUT** `/api/Product/{id}`
+Actualiza un producto existente.
+
+**Parámetros de ruta:**
+- `id`: GUID del producto
+
+**Cuerpo de la solicitud:**
+```json
+{
+  "name": "Laptop Gaming MSI - Actualizado",
+  "category": "Electronics",
+  "unitPrice": 1399.99,
+  "stockQuantity": 20
+}
+```
+
+**Respuesta exitosa (200 OK):**
+```json
+{
+  "isSuccess": true,
+  "data": true,
+  "message": "Producto actualizado exitosamente.",
+  "totalRecords": 0,
+  "errors": null
+}
+```
+
+### **DELETE** `/api/Product/{id}`
+Elimina un producto por su ID.
+
+**Parámetros de ruta:**
+- `id`: GUID del producto
+
+**Respuesta exitosa (204 No Content)**
+
+### **Respuestas de Error**
+**Respuesta con error (400 Bad Request / 404 Not Found):**
 ```json
 {
   "isSuccess": false,
   "data": null,
-  "message": "Ocurrió un error inesperado.",
+  "message": "Producto no encontrado.",
   "totalRecords": 0,
   "errors": [
     {
-      "propertyName": "Error",
-      "errorMessage": "Descripción del error"
+      "propertyName": "Name",
+      "errorMessage": "El nombre del producto es requerido."
     }
   ]
 }
@@ -174,6 +257,8 @@ eCommerce.ProductsService/
 ?   ?   ?       ??? BaseError.cs
 ?   ?   ??? Dtos/
 ?   ?   ?   ??? Products/
+?   ?   ?       ??? GetAllProductsResponseDto.cs
+?   ?   ?       ??? GetProductByIdResponseDto.cs
 ?   ?   ??? Interfaces/
 ?   ?   ?   ??? Persistence/
 ?   ?   ?   ?   ??? IProductRepository.cs
@@ -183,9 +268,25 @@ eCommerce.ProductsService/
 ?   ?   ??? UseCases/
 ?   ?   ?   ??? Products/
 ?   ?   ?       ??? Queries/
-?   ?   ?           ??? GetAllProducts/
-?   ?   ?               ??? GetAllProductsQuery.cs
-?   ?   ?               ??? GetAllProductsHandler.cs
+?   ?   ?       ?   ??? GetAllProducts/
+?   ?   ?       ?   ?   ??? GetAllProductsQuery.cs
+?   ?   ?       ?   ?   ??? GetAllProductsHandler.cs
+?   ?   ?       ?   ??? GetProductById/
+?   ?   ?       ?       ??? GetProductByIdQuery.cs
+?   ?   ?       ?       ??? GetProductByIdHandler.cs
+?   ?   ?       ??? Commands/
+?   ?   ?           ??? CreateProduct/
+?   ?   ?           ?   ??? CreateProductCommand.cs
+?   ?   ?           ?   ??? CreateProductValidator.cs
+?   ?   ?           ?   ??? CreateProductHandler.cs
+?   ?   ?           ??? UpdateProduct/
+?   ?   ?           ?   ??? UpdateProductCommand.cs
+?   ?   ?           ?   ??? UpdateProductValidator.cs
+?   ?   ?           ?   ??? UpdateProductHandler.cs
+?   ?   ?           ??? DeleteProduct/
+?   ?   ?               ??? DeleteProductCommand.cs
+?   ?   ?               ??? DeleteProductValidator.cs
+?   ?   ?               ??? DeleteProductHandler.cs
 ?   ?   ??? Behaviors/
 ?   ?   ?   ??? IValidationService.cs
 ?   ?   ?   ??? ValidationService.cs
@@ -222,11 +323,11 @@ Este proyecto implementa CQRS sin utilizar MediatR, con una implementación perso
 
 ## ?? Próximas Funcionalidades
 
-- [ ] Crear producto (POST)
-- [ ] Obtener producto por ID (GET)
-- [ ] Actualizar producto (PUT)
-- [ ] Eliminar producto (DELETE)
-- [ ] Validaciones con FluentValidation
+- [x] Crear producto (POST)
+- [x] Obtener producto por ID (GET)
+- [x] Actualizar producto (PUT)
+- [x] Eliminar producto (DELETE)
+- [x] Validaciones con FluentValidation
 - [ ] Pruebas unitarias
 - [ ] Documentación con Swagger/OpenAPI
 
