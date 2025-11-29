@@ -19,6 +19,17 @@ public class ApplicationDbContext(
     {
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
         base.OnModelCreating(modelBuilder);
+
+        // Configuración de la entidad Product
+        modelBuilder.Entity<Product>(entity =>
+        {
+            entity.HasKey(e => e.ProductID);
+            entity.Property(e => e.ProductID).ValueGeneratedOnAdd();
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Category).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.UnitPrice).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.StockQuantity).IsRequired();
+        });
     }
 
     public IDbConnection CreateConnection()

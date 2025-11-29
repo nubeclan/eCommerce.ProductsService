@@ -342,6 +342,73 @@ Content-Type: application/json
 
 ---
 
+## ??? Gestión de Base de Datos y Migraciones
+
+### Configuración de la Base de Datos
+
+Antes de ejecutar la aplicación, necesitas configurar la base de datos MySQL:
+
+#### 1. Instalar y Configurar MySQL
+- Instala MySQL Server 8.0 o superior
+- Crea una base de datos llamada `eCommerceProductsServiceDb`
+- Actualiza la cadena de conexión en `appsettings.Development.json`:
+
+```json
+{
+  "ConnectionStrings": {
+    "ProductsServiceConnection": "Server=tu_servidor_mysql;Port=3306;Database=eCommerceProductsServiceDb;User ID=tu_usuario;Password=tu_password;"
+  }
+}
+```
+
+#### 2. Ejecutar Migraciones
+
+```bash
+# Aplicar todas las migraciones pendientes
+dotnet ef database update --project src\eCommerce.ProductsService.Infrastructure --startup-project src\eCommerce.ProductsService.Api
+```
+
+#### 3. Verificar Estado de Migraciones
+
+```bash
+# Listar todas las migraciones disponibles
+dotnet ef migrations list --project src\eCommerce.ProductsService.Infrastructure --startup-project src\eCommerce.ProductsService.Api
+
+# Crear nueva migración si hay cambios en el modelo
+dotnet ef migrations add NombreDeLaMigracion --project src\eCommerce.ProductsService.Infrastructure --startup-project src\eCommerce.ProductsService.Api
+```
+
+#### 4. Comandos Útiles para Migraciones
+
+```bash
+# Eliminar la última migración (si no se ha aplicado)
+dotnet ef migrations remove --project src\eCommerce.ProductsService.Infrastructure --startup-project src\eCommerce.ProductsService.Api
+
+# Generar script SQL de migraciones
+dotnet ef migrations script --project src\eCommerce.ProductsService.Infrastructure --startup-project src\eCommerce.ProductsService.Api
+
+# Actualizar a una migración específica
+dotnet ef database update NombreDeLaMigracion --project src\eCommerce.ProductsService.Infrastructure --startup-project src\eCommerce.ProductsService.Api
+```
+
+### Estructura de la Base de Datos
+
+Después de ejecutar las migraciones, se creará la siguiente estructura:
+
+```sql
+-- Tabla Products
+CREATE TABLE `Products` (
+    `ProductID` char(36) NOT NULL,
+    `Name` longtext NOT NULL,
+    `Category` longtext NOT NULL,
+    `UnitPrice` decimal(18,2) NOT NULL,
+    `StockQuantity` int NOT NULL,
+    PRIMARY KEY (`ProductID`)
+);
+```
+
+---
+
 ## ?? Registro Automático de Handlers
 
 **¡Buenas noticias!** No necesitas registrar manualmente cada handler. El método `AddHandlersFromAssembly()` en `DependencyInjection.cs` del proyecto Application registra automáticamente todos los handlers que implementan `ICommandHandler<,>` o `IQueryHandler<,>`.
@@ -405,50 +472,55 @@ tests/
 ??? eCommerce.ProductsService.Api.Tests/
 ```
 
+## ?? Documentación con Swagger
+
+La API incluye documentación interactiva con Swagger/OpenAPI que se genera automáticamente:
+
+### Configuración de Swagger
+
+1. **Paquetes instalados:**
+   - `Swashbuckle.AspNetCore` - Generación de Swagger
+   - `Swashbuckle.AspNetCore.Filters` - Ejemplos y filtros
+
+2. **Características incluidas:**
+   - Documentación XML de controladores
+   - Ejemplos de requests por defecto
+   - Descripciones detalladas de endpoints
+   - Códigos de respuesta HTTP
+   - Interfaz interactiva para probar endpoints
+
+3. **Acceso a la documentación:**
+   - URL: `https://localhost:5001/swagger`
+   - Disponible solo en modo desarrollo
+   - Incluye ejemplos de todos los endpoints CRUD
+
+### Añadir Ejemplos Personalizados
+
+Para añadir ejemplos personalizados a nuevos endpoints:
+
+```csharp
+// En SwaggerExamples/NombreExamples.cs
+public class NuevoEndpointExamples : IMultipleExamplesProvider<NuevoCommand>
+{
+    public IEnumerable<SwaggerExample<NuevoCommand>> GetExamples()
+    {
+        yield return SwaggerExample.Create(
+            "Ejemplo 1",
+            new NuevoCommand { /* propiedades */ });
+    }
+}
+
+// En el controlador
+[SwaggerRequestExample(typeof(NuevoCommand), typeof(NuevoEndpointExamples))]
+````````
+
+### ¿Cómo manejo las migraciones de base de datos?
+Usa los comandos de Entity Framework Core mencionados en la sección de gestión de base de datos. Siempre ejecuta `dotnet ef database update` antes de desplegar.
+
+### ¿Cómo accedo a la documentación de la API?
+La documentación Swagger está disponible en `https://localhost:5001/swagger` cuando ejecutas la aplicación en modo desarrollo.
+
+### ¿Cómo añado ejemplos a nuevos endpoints?
+Crea una clase que implemente `IMultipleExamplesProvider<T>` y anótala con `[SwaggerRequestExample]` en el controlador.
+
 ---
-
-## ?? Recursos Adicionales
-
-- [Clean Architecture por Uncle Bob](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
-- [CQRS Pattern](https://martinfowler.com/bliki/CQRS.html)
-- [FluentValidation Documentation](https://docs.fluentvalidation.net/)
-- [Entity Framework Core](https://docs.microsoft.com/ef/core/)
-- [Mapster](https://github.com/MapsterMapper/Mapster)
-
----
-
-## ?? Mejores Prácticas
-
-1. **Mantén las capas separadas**: Domain no debe depender de nada, Application no debe conocer Infrastructure
-2. **Usa DTOs**: No expongas entidades del dominio directamente en la API
-3. **Valida siempre**: Utiliza FluentValidation para validar comandos
-4. **Maneja errores**: Siempre usa try-catch y retorna mensajes descriptivos
-5. **Usa async/await**: Todas las operaciones de I/O deben ser asíncronas
-6. **Primary Constructors**: Utiliza la sintaxis moderna de C# 12
-7. **Sealed classes**: Marca los handlers como `internal sealed`
-8. **CancellationToken**: Siempre propágalo en operaciones asíncronas
-
----
-
-## ? Preguntas Frecuentes
-
-### ¿Por qué no usar MediatR?
-Este proyecto implementa un sistema CQRS personalizado para tener control total sobre el flujo y evitar dependencias externas innecesarias.
-
-### ¿Cómo se registran los handlers?
-Automáticamente mediante reflexión en `DependencyInjection.cs` de la capa Application.
-
-### ¿Dónde coloco la lógica de negocio?
-En los handlers de la capa Application, nunca en los controladores.
-
-### ¿Puedo usar otros mappers además de Mapster?
-Sí, pero el proyecto está configurado con Mapster. Tendrías que modificar `DependencyInjection.cs`.
-
----
-
-## ?? Contacto
-
-Si tienes dudas o sugerencias sobre esta guía:
-
-* [Angel Céspedes Quiroz](https://bo.linkedin.com/in/acq1305)
-* Correo: <angel@nubeando.com>

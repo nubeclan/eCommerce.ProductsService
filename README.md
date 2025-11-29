@@ -82,8 +82,11 @@ Edita `appsettings.json` en el proyecto `eCommerce.ProductsService.Api`:
 
 ### 3. Aplicar migraciones
 ```bash
-dotnet ef database update --project src/eCommerce.ProductsService.Infrastructure --startup-project src/eCommerce.ProductsService.Api
+# Asegúrate de tener MySQL corriendo y la cadena de conexión configurada
+dotnet ef database update --project src\eCommerce.ProductsService.Infrastructure --startup-project src\eCommerce.ProductsService.Api
 ```
+
+> **Nota:** Si es la primera vez que ejecutas las migraciones, EF Core creará automáticamente la base de datos si no existe.
 
 ### 4. Ejecutar la aplicación
 ```bash
@@ -92,6 +95,19 @@ dotnet run
 ```
 
 La API estará disponible en: `https://localhost:5001` o `http://localhost:5000`
+
+## ?? Documentación API (Swagger)
+
+Cuando ejecutes la aplicación en modo desarrollo, podrás acceder a la documentación interactiva de la API en:
+
+**Swagger UI:** `https://localhost:5001/swagger` o `http://localhost:5000/swagger`
+
+La documentación incluye:
+- ? Descripciones detalladas de todos los endpoints
+- ? Ejemplos de requests y responses
+- ? Parámetros de consulta y rutas
+- ? Códigos de estado HTTP
+- ? Posibilidad de probar los endpoints directamente desde el navegador
 
 ## ?? Endpoints Disponibles
 
@@ -328,8 +344,8 @@ Este proyecto implementa CQRS sin utilizar MediatR, con una implementación perso
 - [x] Actualizar producto (PUT)
 - [x] Eliminar producto (DELETE)
 - [x] Validaciones con FluentValidation
+- [x] Documentación con Swagger/OpenAPI
 - [ ] Pruebas unitarias
-- [ ] Documentación con Swagger/OpenAPI
 
 ## ????? Desarrollador
 
@@ -339,3 +355,19 @@ Este proyecto implementa CQRS sin utilizar MediatR, con una implementación perso
 ## ?? Licencia
 
 Este proyecto es de código abierto y está disponible bajo la licencia MIT.
+
+## ??? Base de Datos
+
+El proyecto utiliza **MySQL** como base de datos relacional con **Entity Framework Core** para el acceso a datos. Las migraciones están incluidas en el proyecto y se aplican automáticamente.
+
+### Comandos de Migraciones
+
+```bash
+# Aplicar migraciones
+dotnet ef database update --project src\eCommerce.ProductsService.Infrastructure --startup-project src\eCommerce.ProductsService.Api
+
+# Ver estado de migraciones
+dotnet ef migrations list --project src\eCommerce.ProductsService.Infrastructure --startup-project src\eCommerce.ProductsService.Api
+
+# Crear nueva migración (después de cambios en el modelo)
+dotnet ef migrations add NuevaMigracion --project src\eCommerce.ProductsService.Infrastructure --startup-project src\eCommerce.ProductsService.Api
