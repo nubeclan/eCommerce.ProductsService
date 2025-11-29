@@ -1,4 +1,8 @@
 <Solution>
+  <Folder Name="/Elementos de la solución/">
+    <File Path="README.md" />
+    <File Path="TUTORIAL.md" />
+  </Folder>
   <Project Path="src/eCommerce.ProductsService.Api/eCommerce.ProductsService.Api.csproj" />
   <Project Path="src/eCommerce.ProductsService.Application/eCommerce.ProductsService.Application.csproj" />
   <Project Path="src/eCommerce.ProductsService.Domain/eCommerce.ProductsService.Domain.csproj" />
